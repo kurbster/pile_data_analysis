@@ -20,6 +20,11 @@ class BaseDataset(DatasetConfig):
             cache_dir=self.cache_dir
         )
 
+        if self.shuffle:
+            self.dataset = self.dataset.shuffle(seed=self.random_seed)
+
+        self.dataset = self.dataset.select(list(range(self.select_n_samples)))
+
         if isinstance(self.remove_columns, bool):
             self.remove_columns = self.dataset.column_names if self.remove_columns else []
             if self.label_col in self.remove_columns:

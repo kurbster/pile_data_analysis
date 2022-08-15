@@ -26,6 +26,9 @@ class DatasetConfig(InstantiableConfig):
     # Real type is Union[str, List[str]]
     remove_columns: Any = True
     batch_size: int = 1000
+    random_seed: int = 42
+    select_n_samples: int = 20
+    shuffle: bool = False
     batched: bool = True
     load_from_cache: bool = True
     split: Optional[str] = None
