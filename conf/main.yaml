@@ -1,0 +1,9 @@
+defaults:
+  - outputs
+  - base_config
+  - api: main
+  - dataset: hotpot_qa
+  - metric: hotpot_qa
+  - _self_
+
+_target_: "src.main.entry_point"

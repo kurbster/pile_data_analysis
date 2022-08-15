@@ -1,0 +1,7 @@
+defaults:
+  - override hydra/job_logging: logging
+
+hydra:
+  output_subdir: "."
+  job:
+    chdir: True

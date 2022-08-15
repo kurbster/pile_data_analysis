@@ -1,0 +1,10 @@
+defaults:
+  - /dataset/hotpot_config@_here_
+  - _self_
+
+_target_: "src.our_datasets.HotPotQA"
+name: hotpot_qa
+option: 'fullwiki'
+split: 'validation'
+label_col: 'answer'
+remove_columns: ['question', 'type', 'level', 'supporting_facts', 'context']
