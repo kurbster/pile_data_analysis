@@ -6,10 +6,10 @@ defaults:
   - metric: hotpot_qa
   - _self_
 
-_target_: "src.main.entry_point"
+_target_: "src.util.unit_test"
 
 generate_func:
-  _target_: "src.main.batch_generate"
+  _target_: "src.util.dry_run"
 
 output_func:
   _target_: "src.util.write_output"

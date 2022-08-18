@@ -4,9 +4,8 @@ Code for hotpotQA evaluation modified from https://github.com/hotpotqa/hotpot/bl
 import re
 import string
 import logging
-import ujson as json
 
-from typing import List, Dict
+from typing import Any, List, Dict
 from collections import Counter
 
 logger = logging.getLogger("apiLogger")
@@ -60,8 +59,6 @@ def exact_match_score(prediction, ground_truth):
 def update_answer(metrics, prediction, gold):
     em = exact_match_score(prediction, gold)
     f1, prec, recall = f1_score(prediction, gold)
-    if f1 < 1:
-        print('hi')
     metrics['em'] += float(em)
     metrics['f1'] += f1
     metrics['prec'] += prec
@@ -69,10 +66,9 @@ def update_answer(metrics, prediction, gold):
     return em, prec, recall
 
 def hotpot_qa_eval(
-    output_name: str,
     predictions: Dict[str, str],
     ground_truths: Dict[str, str]
-):
+) -> Dict[str, Any]:
     metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
 
     for label in ground_truths:
@@ -89,5 +85,5 @@ def hotpot_qa_eval(
         metrics[k] /= N
 
     logger.info(metrics)
-    with open(output_name, 'w') as f:
-        json.dump(metrics, f)
+
+    return metrics

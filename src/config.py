@@ -1,6 +1,8 @@
 from typing import Optional, Any, Dict, List
 from dataclasses import dataclass, field
 
+import datasets
+
 from hydra.core.config_store import ConfigStore
 
 @dataclass
@@ -41,7 +43,6 @@ class HotPotQAConfig(DatasetConfig):
 
 @dataclass
 class MetricConfig(PartialInstantiableConfig):
-    output_name: str = "results.json"
     predictions: Dict[str, str] = field(default_factory=dict)
     ground_truths: Dict[str, str] = field(default_factory=dict)
 
@@ -63,10 +64,30 @@ class GenerationAPIConfig:
     logit_bias: Dict[str, float] = field(default_factory=dict)
 
 @dataclass
+class OutputConfig(PartialInstantiableConfig):
+    indent: int = 4
+    # Set any of the names to an empty string to skip creating that output
+    input_output_df_fname: str = "input_output_pairs.json"
+    metric_results_out_fname: str = "metrics.json"
+    predictions_output_fname: str = "predictions.json"
+    input_dataset_output_fname: str = "dataset.json"
+    dataset: List[str] = field(default_factory=list)
+    answers: List[str] = field(default_factory=list)
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    predictions: Dict[str, str] = field(default_factory=dict)
+
+@dataclass
+class GenerationFuncConfig(PartialInstantiableConfig):
+    api_cfg: Any = ""
+    prompts: List[str] = field(default_factory=list)
+
+@dataclass
 class GenerationConfig(InstantiableConfig):
     api: GenerationAPIConfig
     metric: MetricConfig
     dataset: DatasetConfig
+    output_func: OutputConfig
+    generate_func: GenerationFuncConfig
 
 cs = ConfigStore.instance()
 cs.store(name="base_config", node=GenerationConfig)

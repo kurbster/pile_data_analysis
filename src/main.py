@@ -1,4 +1,5 @@
 import os
+import json
 import time
 import logging
 
@@ -12,10 +13,12 @@ from omegaconf import OmegaConf
 from openai.error import RateLimitError, InvalidRequestError
 
 from src.config import (
+    MetricConfig,
+    OutputConfig,
     DatasetConfig,
-    GenerationAPIConfig,
     GenerationConfig,
-    MetricConfig
+    GenerationAPIConfig,
+    GenerationFuncConfig,
 )
 
 logger = logging.getLogger("apiLogger")
@@ -59,7 +62,9 @@ def batch_generate(api_cfg: GenerationAPIConfig, prompts: List[str]) -> List[str
 def entry_point(
     api: GenerationAPIConfig,
     dataset: DatasetConfig,
-    metric: MetricConfig
+    metric: MetricConfig,
+    output_func: OutputConfig, 
+    generate_func: GenerationFuncConfig,
 ):
     # Call the dataset preprocess method
     logger.info(f'I am the dataset features BEFORE preprocessing: {dataset.dataset.features}')
@@ -67,11 +72,21 @@ def entry_point(
     logger.info(f'I am the dataset features AFTER preprocessing: {data.features}')
 
     logger.info('Running predictions ...')
-    raw_predictions = batch_generate(api, data[dataset.text_col])
+    raw_predictions = generate_func(api_cfg=api, prompts=data[dataset.text_col])
     predictions = {id: prediction for id, prediction in zip(data['id'], raw_predictions)}
 
     logger.info('Computing metrics ...')
-    metric(predictions=predictions, ground_truths=data)
+    metrics = metric(
+        predictions=predictions,
+        ground_truths=data
+    )
+
+    output_func(
+        dataset=data[dataset.text_col],
+        answers=data[dataset.label_col],
+        metrics=metrics,
+        predictions=predictions
+    )
 
 @hydra.main(config_path="../conf", config_name="main", version_base="1.2")
 def main(cfg: GenerationConfig):
