@@ -19,14 +19,17 @@ class InstantiableConfig:
 @dataclass
 class DatasetConfig(InstantiableConfig):
     name: str = ""
+    header: str = ""
     prefix: str = ""
     suffix: str = " "
     text_col: str = "text"
     label_col: str = "label"
+    few_shot_delim: str = "\n\n"
     # If bool then remove all existing columns except label_col
     # If list then remove colummns in the list
     # Real type is Union[str, List[str]]
     remove_columns: Any = True
+    n_few_shot: int = 0
     batch_size: int = 1000
     random_seed: int = 42
     select_n_samples: int = 20
@@ -52,7 +55,7 @@ class GenerationAPIConfig:
     n: int = 1
     best_of: int = 1
     logprobs: int = 0
-    maxtokens: int = 128
+    max_tokens: int = 128
     echo: bool = False
     stream: bool = False
     model: str = "text-davinci-002"
@@ -71,6 +74,7 @@ class OutputConfig(PartialInstantiableConfig):
     metric_results_out_fname: str = "metrics.json"
     predictions_output_fname: str = "predictions.json"
     input_dataset_output_fname: str = "dataset.json"
+    per_question_metrics_out_fname: str = "per_question_metrics.json"
     dataset: List[str] = field(default_factory=list)
     answers: List[str] = field(default_factory=list)
     metrics: Dict[str, Any] = field(default_factory=dict)
@@ -78,7 +82,7 @@ class OutputConfig(PartialInstantiableConfig):
 
 @dataclass
 class GenerationFuncConfig(PartialInstantiableConfig):
-    api_cfg: Any = ""
+    api_cfg: GenerationAPIConfig = GenerationAPIConfig()
     prompts: List[str] = field(default_factory=list)
 
 @dataclass

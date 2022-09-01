@@ -1,3 +1,6 @@
+# The vscode dir
+.vscode/
+
 # Any hydra output dirs
 outputs/
 

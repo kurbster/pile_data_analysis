@@ -20,25 +20,30 @@ def write_output(
     metric_results_out_fname: str,
     predictions_output_fname: str,
     input_dataset_output_fname: str,
+    per_question_metrics_out_fname: str,
     dataset: List[str],
     answers: List[str],
     metrics: Dict[str, Any],
+    per_question_metrics: Dict[str, Dict[str, float]],
     predictions: Dict[str, str],
 ):
     def write_json(fname: str, obj: Any, msg: str=""):
         if msg: logger.info(msg)
         with open(fname, 'w') as f:
             json.dump(obj, f, indent=indent)
-        
-    if predictions_output_fname:
-        write_json(predictions_output_fname, predictions, msg='Writing predictions to disk')
-    
+
     if metric_results_out_fname:
         write_json(metric_results_out_fname, metrics, msg='Writing metrics to disk')
 
     if input_dataset_output_fname:
         write_json(input_dataset_output_fname, dataset, msg="Writing input data to disk")
+
+    if predictions_output_fname:
+        write_json(predictions_output_fname, predictions, msg='Writing predictions to disk')
     
+    if per_question_metrics_out_fname:
+        write_json(per_question_metrics_out_fname, per_question_metrics, msg="Writing per question metrics to disk")
+
     if input_output_df_fname:
         data = {
             key: {
@@ -73,7 +78,7 @@ def unit_test(
     predictions = {ex['id']: ex[dataset.label_col] for ex in data}
 
     logger.info('Computing metrics ...')
-    metrics = metric(
+    metrics, per_question_metrics = metric(
         predictions=predictions,
         ground_truths=data
     )
@@ -82,5 +87,6 @@ def unit_test(
         dataset=data[dataset.text_col],
         answers=data[dataset.label_col],
         metrics=metrics,
+        per_question_metrics=per_question_metrics,
         predictions=predictions
     )

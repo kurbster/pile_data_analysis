@@ -1,3 +1,6 @@
 defaults:
   - /api/base_config@_here_
   - _self_
+
+stop:
+  - "\n\n\n"

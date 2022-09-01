@@ -25,7 +25,6 @@ logger = logging.getLogger("apiLogger")
 
 def generate(api_cfg: GenerationAPIConfig, prompts: List[str]):
     API_KEY = os.getenv("OPENAI_API_KEY")
-    logger.info(f'using apikey: {API_KEY}')
     openai.api_key = API_KEY
 
     api_options = asdict(api_cfg)
@@ -51,6 +50,8 @@ def batch_generate(api_cfg: GenerationAPIConfig, prompts: List[str]) -> List[str
         for i in range(0, len(prompts), 20):
             logger.info(f'Generating answer for prompts {i} through {i+20}')
             response = generate(api_cfg, prompts)
+            with open(f'response_{i}.json', 'w') as f:
+                json.dump(response, f, indent=4)
             predictions += [prediction["text"] for prediction in response["choices"]]
 
     except InvalidRequestError as e:
@@ -66,6 +67,7 @@ def entry_point(
     output_func: OutputConfig, 
     generate_func: GenerationFuncConfig,
 ):
+    api = OmegaConf.to_object(api)
     # Call the dataset preprocess method
     logger.info(f'I am the dataset features BEFORE preprocessing: {dataset.dataset.features}')
     data = dataset()
@@ -76,7 +78,7 @@ def entry_point(
     predictions = {id: prediction for id, prediction in zip(data['id'], raw_predictions)}
 
     logger.info('Computing metrics ...')
-    metrics = metric(
+    metrics, per_question_metrics = metric(
         predictions=predictions,
         ground_truths=data
     )
@@ -85,6 +87,7 @@ def entry_point(
         dataset=data[dataset.text_col],
         answers=data[dataset.label_col],
         metrics=metrics,
+        per_question_metrics=per_question_metrics,
         predictions=predictions
     )
 

@@ -5,7 +5,7 @@ import re
 import string
 import logging
 
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Tuple
 from collections import Counter
 
 logger = logging.getLogger("apiLogger")
@@ -63,22 +63,27 @@ def update_answer(metrics, prediction, gold):
     metrics['f1'] += f1
     metrics['prec'] += prec
     metrics['recall'] += recall
-    return em, prec, recall
+    return em, f1, prec, recall
 
 def hotpot_qa_eval(
     predictions: Dict[str, str],
     ground_truths: Dict[str, str]
-) -> Dict[str, Any]:
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
     metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
+
+    per_question_metrics = {}
 
     for label in ground_truths:
         cur_id = label['id']
         if cur_id not in predictions:
             logger.info('missing answer {}'.format(cur_id))
         else:
-            update_answer(
+            em, f1, prec, recall = update_answer(
                 metrics, predictions[cur_id], label['answer']
             )
+            per_question_metrics[cur_id] = {
+                'em': em, 'f1': f1, 'prec': prec, 'recall': recall
+            }
 
     N = len(ground_truths)
     for k in metrics.keys():
@@ -86,4 +91,4 @@ def hotpot_qa_eval(
 
     logger.info(metrics)
 
-    return metrics
+    return metrics, per_question_metrics

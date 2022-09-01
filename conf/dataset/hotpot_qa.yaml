@@ -3,8 +3,13 @@ defaults:
   - _self_
 
 _target_: "src.our_datasets.HotPotQA"
+
+n_few_shot: 1
 name: hotpot_qa
 option: 'fullwiki'
 split: 'validation'
 label_col: 'answer'
+header: "Given a passage answer the question based on the information in the passage.\n\n"
+prefix: "Passage: "
+suffix: "\n\nQuestion: "
 remove_columns: ['question', 'type', 'level', 'supporting_facts', 'context']
