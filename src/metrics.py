@@ -5,7 +5,7 @@ import re
 import string
 import logging
 
-from typing import Any, List, Dict, Tuple
+from typing import Any, Dict, Tuple
 from collections import Counter
 
 logger = logging.getLogger("apiLogger")

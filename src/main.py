@@ -1,10 +1,15 @@
 import os
+import sys
 import json
 import time
 import logging
 
 from typing import List
+from pathlib import Path
 from dataclasses import asdict
+
+PARENT_DIR = Path(__file__, '../..').resolve()
+sys.path.append(str(PARENT_DIR))
 
 import hydra
 import openai

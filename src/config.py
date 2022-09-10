@@ -1,14 +1,12 @@
 from typing import Optional, Any, Dict, List
 from dataclasses import dataclass, field
 
-import datasets
-
 from hydra.core.config_store import ConfigStore
 
 @dataclass
 class PartialInstantiableConfig:
     _target_: str
-    _partial_: bool=True
+    _partial_: bool = True
 
 @dataclass
 class InstantiableConfig:
