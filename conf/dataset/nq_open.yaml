@@ -1,0 +1,13 @@
+defaults:
+  - /dataset/nq_open_config@_here_
+  - _self_
+
+_target_: "src.our_datasets.NQOpen"
+
+n_few_shot: 5
+name: nq_open
+split: 'validation'
+label_col: 'answer'
+header: "Given a question generate the answer."
+prefix: "Question: "
+suffix: "Answer: "

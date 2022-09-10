@@ -5,7 +5,11 @@ from dataclasses import dataclass
 import datasets
 from datasets import load_dataset
 
-from src.config import DatasetConfig, HotPotQAConfig
+from src.config import (
+    DatasetConfig,
+    HotPotQAConfig,
+    NQOpenConfig,
+)
 
 BatchType = Dict[str, Union[str, List[str]]]
 
@@ -56,8 +60,10 @@ class BaseDataset(DatasetConfig):
             load_from_cache_file=self.load_from_cache,
         )
 
-    def _preprocess(self, examples: BatchType, **kw) -> BatchType:
+    def _preprocess(self, examples: BatchType) -> BatchType:
         examples[self.label_col] = examples[self.label_col]
+        if 'id' not in examples:
+            examples['id'] = list(range(len(examples[self.label_col])))
         return examples
 
     def _create_few_shot_examples(self, examples: BatchType) -> BatchType:
@@ -78,7 +84,7 @@ class HotPotQA(BaseDataset, HotPotQAConfig):
             + sent + self.section_delim \
             + self.suffix \
             + examples['question'][i] + self.section_delim \
-            + self.answer_prefix + examples[self.answer_col][i]
+            + self.answer_prefix + examples[self.label_col][i]
             for i, sent in enumerate(sentences_arr)
         ]
         return examples
@@ -100,6 +106,34 @@ class HotPotQA(BaseDataset, HotPotQAConfig):
             + examples['question'][i] + self.section_delim \
             + self.answer_prefix
             for i, sent in enumerate(sentences_arr)
+        ]
+        examples = super()._preprocess(examples)
+        return examples
+
+@dataclass
+class NQOpen(BaseDataset, NQOpenConfig):
+    def _create_few_shot_examples(self, examples: BatchType) -> BatchType:
+        # The answers for the dataset are a list.
+        # For now take the first answer
+        # TODO: Should we combine the list with commas?
+        examples[self.text_col] = [
+            self.prefix \
+            + examples[self.question_col][i] \
+            + self.section_delim \
+            + self.suffix + examples[self.label_col][i][0]
+            for i in range(len(examples[self.question_col]))
+        ]
+        return examples
+
+    def _preprocess(self, examples: BatchType) -> BatchType:
+        examples[self.text_col] = [
+            self.header + self.section_delim \
+            + self.few_shot_examples + self.section_delim \
+            + self.prefix \
+            + examples[self.question_col][i] \
+            + self.section_delim \
+            + self.suffix
+            for i in range(len(examples[self.question_col]))
         ]
         examples = super()._preprocess(examples)
         return examples

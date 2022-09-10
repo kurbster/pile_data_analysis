@@ -1,9 +1,7 @@
-"""
-Code for hotpotQA evaluation modified from https://github.com/hotpotqa/hotpot/blob/master/hotpot_evaluate_v1.py
-"""
 import re
 import string
 import logging
+import unicodedata
 
 from typing import Any, Dict, Tuple
 from collections import Counter
@@ -11,6 +9,7 @@ from collections import Counter
 logger = logging.getLogger("apiLogger")
 
 def normalize_answer(s):
+    s = unicodedata.normalize("NFD", s)
 
     def remove_articles(text):
         return re.sub(r'\b(a|an|the)\b', ' ', text)
@@ -56,15 +55,21 @@ def f1_score(prediction, ground_truth):
 def exact_match_score(prediction, ground_truth):
     return (normalize_answer(prediction) == normalize_answer(ground_truth))
 
-def update_answer(metrics, prediction, gold):
+def compute_metrics(prediction, gold):
     em = exact_match_score(prediction, gold)
     f1, prec, recall = f1_score(prediction, gold)
+    return em, f1, prec, recall
+
+def update_metrics(metrics, em, f1, prec, recall):
     metrics['em'] += float(em)
     metrics['f1'] += f1
     metrics['prec'] += prec
     metrics['recall'] += recall
     return em, f1, prec, recall
 
+"""
+Code for hotpotQA evaluation modified from https://github.com/hotpotqa/hotpot/blob/master/hotpot_evaluate_v1.py
+"""
 def hotpot_qa_eval(
     predictions: Dict[str, str],
     ground_truths: Dict[str, str]
@@ -78,12 +83,52 @@ def hotpot_qa_eval(
         if cur_id not in predictions:
             logger.info('missing answer {}'.format(cur_id))
         else:
-            em, f1, prec, recall = update_answer(
-                metrics, predictions[cur_id], label['answer']
+            em, f1, prec, recall = compute_metrics(
+                predictions[cur_id], label['answer']
             )
+
+            update_metrics(metrics, em, f1, prec, recall)
             per_question_metrics[cur_id] = {
                 'em': em, 'f1': f1, 'prec': prec, 'recall': recall
             }
+
+    N = len(ground_truths)
+    for k in metrics.keys():
+        metrics[k] /= N
+
+    logger.info(metrics)
+
+    return metrics, per_question_metrics
+
+def nq_open_eval(
+    predictions: Dict[str, str],
+    ground_truths: Dict[str, str],
+) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+    metrics = {'em': 0, 'f1': 0, 'prec': 0, 'recall': 0}
+
+    per_question_metrics = {}
+
+    for id, label in enumerate(ground_truths):
+        prediction = predictions[id]
+        # Get the max value over ever answer
+        em_scores, f1_scores, prec_scores, recall_scores = [], [], [], []
+        # TODO: Can we put this in a nice list comprehension?
+        for answer in label['answer']:
+            em, f1, prec, recall = compute_metrics(prediction, answer)
+            em_scores.append(em)
+            f1_scores.append(f1)
+            prec_scores.append(prec)
+            recall_scores.append(recall)
+
+        em = max(em_scores)
+        f1 = max(f1_scores)
+        prec = max(prec_scores)
+        recall = max(recall_scores)
+
+        update_metrics(metrics, em, f1, prec, recall)
+        per_question_metrics[id] = {
+            'em': em, 'f1': f1, 'prec': prec, 'recall': recall
+        }
 
     N = len(ground_truths)
     for k in metrics.keys():

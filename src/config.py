@@ -63,9 +63,13 @@ class DatasetConfig(InstantiableConfig):
 
 @dataclass
 class HotPotQAConfig(DatasetConfig):
-    answer_col: str = "answer"
     answer_prefix: str = "Answer: "
     sentence_delim: str = ' '
+
+@dataclass
+class NQOpenConfig(DatasetConfig):
+    id_col: str = "label"
+    question_col: str = "question"
 
 @dataclass
 class MetricConfig(PartialInstantiableConfig):
@@ -122,3 +126,4 @@ cs.store(group="api", name="base_config", node=GenerationAPIConfig)
 cs.store(group="metric", name="base_config", node=MetricConfig)
 cs.store(group="dataset", name="base_config", node=DatasetConfig)
 cs.store(group="dataset", name="hotpot_config", node=HotPotQAConfig)
+cs.store(group="dataset", name="nq_open_config", node=NQOpenConfig)

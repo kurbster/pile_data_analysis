@@ -7,7 +7,6 @@ from src.config import (
     MetricConfig,
     OutputConfig,
     DatasetConfig,
-    GenerationConfig,
     GenerationAPIConfig,
     GenerationFuncConfig,
 )
@@ -62,11 +61,10 @@ def dry_run(api_cfg: GenerationAPIConfig, prompts: List[str]):
     return prompts
 
 def unit_test(
-    api: GenerationAPIConfig,
     dataset: DatasetConfig,
     metric: MetricConfig,
     output_func: OutputConfig,
-    generate_func: GenerationFuncConfig,
+    **kw
 ):
     # Call the dataset preprocess method
     logger.info(f'I am the dataset features BEFORE preprocessing: {dataset.dataset.features}')
@@ -74,8 +72,10 @@ def unit_test(
     logger.info(f'I am the dataset features AFTER preprocessing: {data.features}')
 
     logger.info('Running predictions ...')
-    raw_predictions = generate_func(api_cfg=api, prompts=data[dataset.text_col])
-    predictions = {ex['id']: ex[dataset.label_col] for ex in data}
+    if isinstance(data[dataset.label_col][0], list):
+        predictions = {ex['id']: ex[dataset.label_col][0] for ex in data}
+    else:
+        predictions = {ex['id']: ex[dataset.label_col] for ex in data}
 
     logger.info('Computing metrics ...')
     metrics, per_question_metrics = metric(
