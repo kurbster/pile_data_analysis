@@ -16,14 +16,36 @@ class InstantiableConfig:
 
 @dataclass
 class DatasetConfig(InstantiableConfig):
+    """This is the dataset config base class.
+    The dataset will be loaded with the huggingface method
+
+        load_dataset(self.name, self.option)
+    
+    The prompt passed to GPT3 will be constructed as follows.
+    The few shot examples can be passed or randomly selected from the dataset.
+
+        <self.header><self.section_delim>
+        <FEW_SHOT_EXAMPLES><self.section_delim>
+        <self.prefix><TEXT_COL><self.section_delim>
+        <self.suffix>
+
+    Each few shot example will be constructed like this
+
+        <self.prefix><TEXT_COL><self.section_delim>
+        <self.suffix>
+    
+    The TEXT_COL will be constructed inside of the self._preprocess method.
+    The FEW_SHOT_EXAMPLES will be constructed inside of the self._create_few_shot_examples method
+    Any new dataset with extra functionality should override this class.
+    """
     name: str = ""
     header: str = ""
     prefix: str = ""
     suffix: str = " "
     text_col: str = "text"
     label_col: str = "label"
-    few_shot_delim: str = "\n\n"
-    # If bool then remove all existing columns except label_col
+    section_delim: str = "\n\n"
+    # If bool and True then remove all existing columns except label_col
     # If list then remove colummns in the list
     # Real type is Union[str, List[str]]
     remove_columns: Any = True
@@ -37,9 +59,12 @@ class DatasetConfig(InstantiableConfig):
     split: Optional[str] = None
     option: Optional[str] = None
     cache_dir: Optional[str] = None
+    few_shot_examples: Optional[List[str]] = field(default_factory=list)
 
 @dataclass
 class HotPotQAConfig(DatasetConfig):
+    answer_col: str = "answer"
+    answer_prefix: str = "Answer: "
     sentence_delim: str = ' '
 
 @dataclass

@@ -9,7 +9,7 @@ name: hotpot_qa
 option: 'fullwiki'
 split: 'validation'
 label_col: 'answer'
-header: "Given a passage answer the question based on the information in the passage.\n\n"
+header: "Given a passage answer the question based on the information in the passage."
 prefix: "Passage: "
-suffix: "\n\nQuestion: "
+suffix: "Question: "
 remove_columns: ['question', 'type', 'level', 'supporting_facts', 'context']

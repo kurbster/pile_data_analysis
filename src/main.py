@@ -103,4 +103,6 @@ def main(cfg: GenerationConfig):
     hydra.utils.instantiate(cfg)
 
 if __name__ == '__main__':
+    # Make sure the hydra output is in the same place everytime
+    os.chdir(PARENT_DIR)
     main()
